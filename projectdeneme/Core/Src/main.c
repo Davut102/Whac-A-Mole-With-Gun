@@ -409,14 +409,14 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     uint32_t new_period;
 
     // ADC degerine göre yeni prescaler ve periyot degerlerini belirleyin
-    if (adc_value < 0x900) { // ADC degeri 2V'nin altindaysa
-        new_prescaler = 124;
-        new_period = 63999;
-    } else if (adc_value < 0x1300) { // ADC degeri 4V'nin altindaysa
-        new_prescaler = 1249;
-        new_period = 63999;
+    if (adc_value < 0x555) { // ADC degeri 1.1 V'nin altindaysa
+        new_prescaler = 111;
+        new_period = 62499;
+    } else if (adc_value < 0x6C2) { // ADC degeri 2.2 V'nin altindaysa
+        new_prescaler = 223;
+        new_period = 62499;
     } else { // Diger durumlar
-        new_prescaler = 63;
+        new_prescaler = 335;
         new_period = 62499;
     }
 
