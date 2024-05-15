@@ -49,7 +49,9 @@ ADC_HandleTypeDef hadc1;
 TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
-
+static uint16_t previous_adc_value = 0xFFFF;
+static uint16_t current_prescaler = 0xFFFF;
+static uint32_t current_period = 0xFFFFFFFF;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -399,23 +401,50 @@ void configureTimer(uint16_t prescaler, uint32_t period) {
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-	uint16_t adc_value = 0;
+    uint16_t adc_value = 0;
 
     adc_value = HAL_ADC_GetValue(hadc);
-    
+
+    uint16_t new_prescaler;
+    uint32_t new_period;
+
+    // ADC degerine göre yeni prescaler ve periyot degerlerini belirleyin
     if (adc_value < 0x900) { // ADC degeri 2V'nin altindaysa
-        // Mod 1: 1 saniye
-        htim2.Init.Prescaler = 124; // Yeni prescaler degerini ayarla
-        htim2.Init.Period = 63999; // Yeni periyot degerini ayarla
+        new_prescaler = 124;
+        new_period = 63999;
     } else if (adc_value < 0x1300) { // ADC degeri 4V'nin altindaysa
-        // Mod 2: 2 saniye
-        htim2.Init.Prescaler = 1249; // Yeni prescaler degerini ayarla
-        htim2.Init.Period = 63999; // Yeni periyot degerini ayarla
-    } else {
-        // Mod 3: 0.5 saniye
-        htim2.Init.Prescaler = 63; // Yeni prescaler degerini ayarla
-        htim2.Init.Period = 62499; // Yeni periyot degerini ayarlat
+        new_prescaler = 1249;
+        new_period = 63999;
+    } else { // Diger durumlar
+        new_prescaler = 63;
+        new_period = 62499;
     }
+
+    // Eger yeni ayarlar mevcut ayarlardan farkliysa, timer'i yeniden yapilandirin
+    if (new_prescaler != current_prescaler || new_period != current_period) {
+        htim2.Init.Prescaler = new_prescaler;
+        htim2.Init.Period = new_period;
+
+        // Timer'i durdurun
+        HAL_TIM_Base_Stop(&htim2);
+
+        // Timer'i yeniden yapilandirin
+        if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
+            // Hata durumunda buraya ek kod ekleyin
+        }
+
+        // Timer'i tekrar baslatin
+        if (HAL_TIM_Base_Start(&htim2) != HAL_OK) {
+            // Hata durumunda buraya ek kod ekleyin
+        }
+
+        // Güncellenen prescaler ve periyot degerlerini kaydedin
+        current_prescaler = new_prescaler;
+        current_period = new_period;
+    }
+
+    // Önceki ADC degerini güncelleyin
+    previous_adc_value = adc_value;
 }
 
 
