@@ -1,0 +1,26 @@
+--cpu Cortex-M3
+"projectdeneme\startup_stm32f103x6.o"
+"projectdeneme\main.o"
+"projectdeneme\stm32f1xx_it.o"
+"projectdeneme\stm32f1xx_hal_msp.o"
+"projectdeneme\lcd.o"
+"projectdeneme\stm32f1xx_hal_gpio_ex.o"
+"projectdeneme\stm32f1xx_hal_adc.o"
+"projectdeneme\stm32f1xx_hal_adc_ex.o"
+"projectdeneme\stm32f1xx_hal.o"
+"projectdeneme\stm32f1xx_hal_rcc.o"
+"projectdeneme\stm32f1xx_hal_rcc_ex.o"
+"projectdeneme\stm32f1xx_hal_gpio.o"
+"projectdeneme\stm32f1xx_hal_dma.o"
+"projectdeneme\stm32f1xx_hal_cortex.o"
+"projectdeneme\stm32f1xx_hal_pwr.o"
+"projectdeneme\stm32f1xx_hal_flash.o"
+"projectdeneme\stm32f1xx_hal_flash_ex.o"
+"projectdeneme\stm32f1xx_hal_exti.o"
+"projectdeneme\stm32f1xx_hal_tim.o"
+"projectdeneme\stm32f1xx_hal_tim_ex.o"
+"projectdeneme\system_stm32f1xx.o"
+--strict --scatter "projectdeneme\projectdeneme.sct"
+--summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "projectdeneme.map" -o projectdeneme\projectdeneme.axf
