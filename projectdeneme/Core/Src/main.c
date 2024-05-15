@@ -18,12 +18,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include <stdio.h> // sprintf komutunu kullanabilmek için
-#include "LCD.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdlib.h"
+#include "stdio.h"
+#include "LCD.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,7 +46,6 @@ uint16_t leds[] = {GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15};
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-
 TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
@@ -128,11 +127,13 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
-while (1)
+  while (1)
   {
+    /* USER CODE END WHILE */
 
+    /* USER CODE BEGIN 3 */
   }
+  /* USER CODE END 3 */
 }
 
 /**
@@ -202,7 +203,7 @@ static void MX_ADC1_Init(void)
   */
   hadc1.Instance = ADC1;
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -404,25 +405,16 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     
     if (adc_value < 0x900) { // ADC degeri 2V'nin altindaysa
         // Mod 1: 1 saniye
-        HAL_TIM_Base_Stop(&htim2); // Timer'i durdur
         htim2.Init.Prescaler = 124; // Yeni prescaler degerini ayarla
         htim2.Init.Period = 63999; // Yeni periyot degerini ayarla
-        HAL_TIM_Base_Init(&htim2); // Timer'i yeniden baslat
-        HAL_TIM_Base_Start_IT(&htim2); // Timer'i tekrar baslat ve kesme ayarla
     } else if (adc_value < 0x1300) { // ADC degeri 4V'nin altindaysa
         // Mod 2: 2 saniye
-        HAL_TIM_Base_Stop(&htim2); // Timer'i durdur
         htim2.Init.Prescaler = 1249; // Yeni prescaler degerini ayarla
         htim2.Init.Period = 63999; // Yeni periyot degerini ayarla
-        HAL_TIM_Base_Init(&htim2); // Timer'i yeniden baslat
-        HAL_TIM_Base_Start_IT(&htim2); // Timer'i tekrar baslat ve kesme ayarla
     } else {
         // Mod 3: 0.5 saniye
-        HAL_TIM_Base_Stop(&htim2); // Timer'i durdur
         htim2.Init.Prescaler = 63; // Yeni prescaler degerini ayarla
-        htim2.Init.Period = 62499; // Yeni periyot degerini ayarla
-        HAL_TIM_Base_Init(&htim2); // Timer'i yeniden baslat
-        HAL_TIM_Base_Start_IT(&htim2); // Timer'i tekrar baslat ve kesme ayarla
+        htim2.Init.Period = 62499; // Yeni periyot degerini ayarlat
     }
 }
 

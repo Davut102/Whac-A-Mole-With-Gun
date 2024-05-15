@@ -1,9 +1,9 @@
 --cpu Cortex-M3
 "projectdeneme\startup_stm32f103x6.o"
+"projectdeneme\lcd.o"
 "projectdeneme\main.o"
 "projectdeneme\stm32f1xx_it.o"
 "projectdeneme\stm32f1xx_hal_msp.o"
-"projectdeneme\lcd.o"
 "projectdeneme\stm32f1xx_hal_gpio_ex.o"
 "projectdeneme\stm32f1xx_hal_adc.o"
 "projectdeneme\stm32f1xx_hal_adc_ex.o"
