@@ -179,8 +179,11 @@ RCC.PLLMCOFreq_Value=4000000
 RCC.SYSCLKFreq_VALUE=8000000
 RCC.TimSysFreq_Value=8000000
 RCC.USBFreq_Value=8000000
+<<<<<<< Updated upstream
 SH.ADCx_IN0.0=ADC2_IN0,IN0
 SH.ADCx_IN0.ConfNb=1
+=======
+>>>>>>> Stashed changes
 SH.ADCx_IN4.0=ADC1_IN4,IN4
 SH.ADCx_IN4.ConfNb=1
 SH.GPXTI11.0=GPIO_EXTI11

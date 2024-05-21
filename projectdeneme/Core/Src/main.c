@@ -46,9 +46,13 @@ uint16_t leds[] = {GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15};
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+<<<<<<< Updated upstream
 ADC_HandleTypeDef hadc2;
 
 TIM_HandleTypeDef htim1;
+=======
+
+>>>>>>> Stashed changes
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart1;
@@ -510,11 +514,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
         if (previousLed != -1) {
             HAL_GPIO_WritePin(GPIOB, leds[previousLed], GPIO_PIN_RESET);
-					
-					
+				
         }
         
-
         int random = rand() % 4; 
 				int random2 = rand() % 4;
         HAL_GPIO_WritePin(GPIOB, leds[random], GPIO_PIN_SET); 
@@ -522,10 +524,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				lcd_print(1, 1, "temprature");
 				lcd_print(2, 1, Score[colorNumber_keeper]);
 				
-				
-			
-						
-						
         previousLed = random; 
     }
 		
