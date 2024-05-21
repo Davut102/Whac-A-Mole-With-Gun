@@ -22,7 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdlib.h"
-#include "stdio.h"
+#include <stdio.h> // sprintf komutunu kullanabilmek için
 #include "LCD.h"
 /* USER CODE END Includes */
 
@@ -46,16 +46,13 @@ uint16_t leds[] = {GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15};
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
-<<<<<<< Updated upstream
 ADC_HandleTypeDef hadc2;
 
 TIM_HandleTypeDef htim1;
-=======
-
->>>>>>> Stashed changes
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart1;
+DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
 static uint16_t previous_adc_value = 0xFFFF;
@@ -66,6 +63,7 @@ static uint32_t current_period = 0xFFFFFFFF;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_TIM2_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
@@ -77,7 +75,7 @@ static void MX_USART1_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-// Renklerin bulundugu dizi
+
 char colors[4][16] = {
     "Red   ",   // 0. eleman
     "Purple",     // 1. eleman
@@ -99,6 +97,11 @@ char Score[4][16] = {
 	int colorNumber_keeper;
 	int score;
 	char score_str[20];
+
+
+
+
+
 
 /* USER CODE END 0 */
 
@@ -130,6 +133,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM2_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
@@ -140,19 +144,17 @@ int main(void)
 	MX_ADC1_Init();
 	HAL_ADC_Start_IT(&hadc1);
 	lcd_init(_LCD_4BIT, _LCD_FONT_5x8, _LCD_2LINE);
-	lcd_print(2, 2, "merhaba");
-
-	HAL_Delay(500);
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
   while (1)
   {
 		
 		
-		lcd_print(2, 2, "merhaba");
-		
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -225,7 +227,7 @@ static void MX_ADC1_Init(void)
   */
   hadc1.Instance = ADC1;
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -450,6 +452,22 @@ static void MX_USART1_UART_Init(void)
 }
 
 /**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -508,9 +526,11 @@ int previousLed = -1;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-		
+
+			
     if (htim->Instance == TIM2)
     {
+			
 
         if (previousLed != -1) {
             HAL_GPIO_WritePin(GPIOB, leds[previousLed], GPIO_PIN_RESET);
@@ -521,13 +541,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				int random2 = rand() % 4;
         HAL_GPIO_WritePin(GPIOB, leds[random], GPIO_PIN_SET); 
 				colorNumber_keeper = random2;
-				lcd_print(1, 1, "temprature");
-				lcd_print(2, 1, Score[colorNumber_keeper]);
+				lcd_print(1, 1, colors[random]);
+				sprintf(score_str, "%d", score);
+				lcd_print(2, 1, score_str);
+				
 				
         previousLed = random; 
     }
 		
 }
+
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -543,8 +566,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				(GPIO_PIN_15==GPIO_PIN_SET && colorNumber_keeper==3) 
 				){
 				score++;
-				sprintf(score_str, "%d", score);
-				lcd_print(2, 2, score_str);
+					
+			
 				
 				}
         if (previousLed != -1) {
@@ -562,11 +585,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		}
 }
 
-void configureTimer(uint16_t prescaler, uint32_t period) {
-    htim2.Init.Prescaler = prescaler;
-    htim2.Init.Period = period;
-    HAL_TIM_Base_Init(&htim2);
-}
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     uint16_t adc_value = 0;
@@ -578,14 +596,14 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 
     // ADC degerine göre yeni prescaler ve periyot degerlerini belirleyin
     if (adc_value < 0x555) { // ADC degeri 1.1 V'nin altindaysa
-        new_prescaler = 19;
-        new_period = 59999;
-    } else if (adc_value < 0x6C2) { // ADC degeri 2.2 V'nin altindaysa
         new_prescaler = 31;
         new_period = 62499;
-    } else { // Diger durumlar
+    } else if (adc_value < 0x6C2) { // ADC degeri 2.2 V'nin altindaysa
         new_prescaler = 63;
         new_period = 62499;
+    } else { // Diger durumlar
+        new_prescaler = 124;
+        new_period = 63999;
     }
 
     // Eger yeni ayarlar mevcut ayarlardan farkliysa, timer'i yeniden yapilandirin
