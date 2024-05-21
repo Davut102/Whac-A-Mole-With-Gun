@@ -19,6 +19,7 @@
 "projectdeneme\stm32f1xx_hal_exti.o"
 "projectdeneme\stm32f1xx_hal_tim.o"
 "projectdeneme\stm32f1xx_hal_tim_ex.o"
+"projectdeneme\stm32f1xx_hal_uart.o"
 "projectdeneme\system_stm32f1xx.o"
 --strict --scatter "projectdeneme\projectdeneme.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
