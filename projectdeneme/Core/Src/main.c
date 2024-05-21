@@ -541,7 +541,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				int random2 = rand() % 4;
         HAL_GPIO_WritePin(GPIOB, leds[random], GPIO_PIN_SET); 
 				colorNumber_keeper = random2;
-				lcd_print(1, 1, colors[random]);
+				lcd_print(1, 1, colors[random2]);
 				sprintf(score_str, "%d", score);
 				lcd_print(2, 1, score_str);
 				
@@ -570,19 +570,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			
 				
 				}
-        if (previousLed != -1) {
-            HAL_GPIO_WritePin(GPIOB, leds[previousLed], GPIO_PIN_RESET);
-        }
-        
-        int random = rand() % 4;
-        HAL_GPIO_WritePin(GPIOB, leds[random], GPIO_PIN_SET);
-				  
-        previousLed = random; 
+  
     }
-		else
-		{
-			__NOP();
-		}
+		
 }
 
 
@@ -596,13 +586,13 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 
     // ADC degerine göre yeni prescaler ve periyot degerlerini belirleyin
     if (adc_value < 0x555) { // ADC degeri 1.1 V'nin altindaysa
-        new_prescaler = 31;
-        new_period = 62499;
-    } else if (adc_value < 0x6C2) { // ADC degeri 2.2 V'nin altindaysa
         new_prescaler = 63;
         new_period = 62499;
+    } else if (adc_value < 0x6C2) { // ADC degeri 2.2 V'nin altindaysa
+        new_prescaler = 95;
+        new_period = 62499;
     } else { // Diger durumlar
-        new_prescaler = 124;
+        new_prescaler = 249;
         new_period = 63999;
     }
 
