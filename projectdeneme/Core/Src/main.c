@@ -95,7 +95,9 @@ char Score[4][16] = {
 
 
 	int colorNumber_keeper;
+	int ledNumber_keeper;
 	int score;
+	int flag;
 	char score_str[20];
 
 
@@ -531,7 +533,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     if (htim->Instance == TIM2)
     {
 			
-
+				flag =0;
         if (previousLed != -1) {
             HAL_GPIO_WritePin(GPIOB, leds[previousLed], GPIO_PIN_RESET);
 				
@@ -541,6 +543,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				int random2 = rand() % 4;
         HAL_GPIO_WritePin(GPIOB, leds[random], GPIO_PIN_SET); 
 				colorNumber_keeper = random2;
+				ledNumber_keeper = random;
 				lcd_print(1, 1, colors[random2]);
 				sprintf(score_str, "%d", score);
 				lcd_print(2, 1, score_str);
@@ -560,15 +563,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (GPIO_Pin == BUTTON_PIN) 
     {
 			
-			  if((GPIO_PIN_12==GPIO_PIN_SET && colorNumber_keeper==0)||
-					(GPIO_PIN_13==GPIO_PIN_SET && colorNumber_keeper==1) ||
-				(GPIO_PIN_14==GPIO_PIN_SET && colorNumber_keeper==2) ||
-				(GPIO_PIN_15==GPIO_PIN_SET && colorNumber_keeper==3) 
-				){
-				score++;
-					
-			
-				
+			  if(ledNumber_keeper==colorNumber_keeper && flag==0){
+				score++;	
+				flag=1;
 				}
   
     }
