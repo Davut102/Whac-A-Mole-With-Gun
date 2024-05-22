@@ -34,6 +34,7 @@ uint16_t leds[] = {GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15};
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define BUTTON_PIN GPIO_PIN_11
+#define BUTTON_PIN_2 GPIO_PIN_10
 #define TIM2_MAX_PERIOD 63999
 #define POTENTIOMETER_MIN_VALUE 0
 #define POTENTIOMETER_MAX_VALUE 4095
@@ -97,8 +98,10 @@ char Score[4][16] = {
 	int colorNumber_keeper;
 	int ledNumber_keeper;
 	int score;
+	int score2;
 	int flag;
 	char score_str[20];
+	char score_str2[20];
 
 
 
@@ -508,8 +511,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB11 */
-  GPIO_InitStruct.Pin = GPIO_PIN_11;
+  /*Configure GPIO pins : PB10 PB11 */
+  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -547,6 +550,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				lcd_print(1, 1, colors[random2]);
 				sprintf(score_str, "%d", score);
 				lcd_print(2, 1, score_str);
+				sprintf(score_str2, "%d", score2);
+				lcd_print(2,5, score_str2);
 				
 				
         previousLed = random; 
@@ -561,16 +566,27 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	
 	 
     if (GPIO_Pin == BUTTON_PIN) 
-    {
-			
+    {	
+
 			  if(ledNumber_keeper==colorNumber_keeper && flag==0){
 				score++;	
 				flag=1;
-				}else if(!(ledNumber_keeper==colorNumber_keeper && flag==0)){
+				}else if(!(ledNumber_keeper==colorNumber_keeper) && flag==0){
 					score--;
 					flag=1;
+
 				}
-  
+    } 
+		if (GPIO_Pin == BUTTON_PIN_2) 
+    {	
+
+			  if(ledNumber_keeper==colorNumber_keeper && flag==0){
+				score2++;	
+				flag=1;
+				}else if(!(ledNumber_keeper==colorNumber_keeper)&& flag==0){
+					score2--;
+					flag=1;
+				}
     }
 		
 }
