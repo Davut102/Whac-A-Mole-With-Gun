@@ -24,6 +24,7 @@
 #include "stdlib.h"
 #include <stdio.h> // sprintf komutunu kullanabilmek için
 #include "LCD.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -71,7 +72,8 @@ static void MX_ADC2_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void temp_conv(uint16_t temp_var);
+void print_char(uint32_t num_var);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -117,7 +119,8 @@ char Score[4][16] = {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	uint8_t *Welcome_msg = {"Merhabalar, sicaklik bilgileri geliyor \r\n"};
+	uint16_t ADC_val; 
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -149,7 +152,7 @@ int main(void)
 	MX_ADC1_Init();
 	HAL_ADC_Start_IT(&hadc1);
 	lcd_init(_LCD_4BIT, _LCD_FONT_5x8, _LCD_2LINE);
-	
+	HAL_UART_Transmit(&huart1, (uint8_t*)Welcome_msg, strlen(Welcome_msg), 40);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -158,7 +161,12 @@ int main(void)
   while (1)
   {
 		
-		
+		HAL_ADC_Start(&hadc2);
+		HAL_ADC_PollForConversion(&hadc2,100);
+		ADC_val = HAL_ADC_GetValue(&hadc2);
+		HAL_ADC_Stop(&hadc2);
+		temp_conv(ADC_val);
+		HAL_Delay(500);
 
     /* USER CODE END WHILE */
 
@@ -439,7 +447,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -639,9 +647,42 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     previous_adc_value = adc_value;
 }
 
+void temp_conv(uint16_t temp_var)
+{
+	uint32_t var1 = 0;
+	var1 = (temp_var*8.05);
+	HAL_UART_Transmit(&huart1, "temp: ", 6, 10); 
+	print_char(var1);
+}
+void print_char(uint32_t num_var)
+{
+	uint8_t char_num_var[] = {"000000\r\n"};
+	uint8_t i=5;
+	while(num_var != 0)
+	{
+			char_num_var[i] = (num_var%10) + 48;
+			num_var = num_var/10;
+			i--;
+			if(i == 3)
+			{
+					char_num_var[i] = '.'; 
+					i--;
+			}
+	}
+	char_num_var[i] = (num_var%10) + 48;
 
+	HAL_UART_Transmit(&huart1, &char_num_var[0], 8, 15);
+	HAL_Delay(1);
+}
 
-
+void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
+  /* NOTE: This function should not be modified, when the callback is needed,
+           the HAL_UART_TxHalfCpltCallback could be implemented in the user file
+   */
+}
 
 
 /* USER CODE END 4 */

@@ -16,22 +16,38 @@ Linker/Locator:  ArmLink.exe V6.21
 Library Manager: ArmAr.exe V6.21
 Hex Converter:   FromElf.exe V6.21
 CPU DLL:         SARMCM3.DLL V5.39.0.0
-Dialog DLL:      DARMSTM.DLL V1.69.1.0
+Dialog DLL:      DCM.DLL V1.17.5.0
 Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.2.0.0
 Dialog DLL:      TCM.DLL V1.56.4.0
  
 <h2>Project:</h2>
 C:\Users\Hp\Documents\GitHub\Whac-A-Mole-With-Gun\projectdeneme\MDK-ARM\projectdeneme.uvprojx
-Project File Date:  05/21/2024
+Project File Date:  05/23/2024
 
 <h2>Output:</h2>
 *** Using Compiler 'V6.21', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'projectdeneme'
+../Core/Src/main.c(122): warning: initializing 'uint8_t *' (aka 'unsigned char *') with an expression of type 'char[42]' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+  122 |         uint8_t *Welcome_msg = {"Merhabalar, sicaklik bilgileri geliyor \r\n"};
+      |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+../Core/Src/main.c(155): warning: passing 'uint8_t *' (aka 'unsigned char *') to parameter of type 'const char *' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+  155 |         HAL_UART_Transmit(&huart1, (uint8_t*)Welcome_msg, strlen(Welcome_msg), 40);
+      |                                                                  ^~~~~~~~~~~
+C:\Keil_v5\ARM\ARMCLANG\Bin\..\include\string.h(335): note: passing argument to parameter here
+  335 | extern _ARMABI size_t strlen(const char * /*s*/) __attribute__((__nonnull__(1)));
+      |                                                ^
+../Core/Src/main.c(654): warning: passing 'char[7]' to parameter of type 'const uint8_t *' (aka 'const unsigned char *') converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+  654 |         HAL_UART_Transmit(&huart1, "temp: ", 6, 10); 
+      |                                    ^~~~~~~~
+../Drivers/STM32F1xx_HAL_Driver/Inc\stm32f1xx_hal_uart.h(749): note: passing argument to parameter 'pData' here
+  749 | HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, const uint8_t *pData, uint16_t Size, uint32_t Timeout);
+      |                                                                               ^
+3 warnings generated.
 compiling main.c...
 linking...
-Program Size: Code=25508 RO-data=868 RW-data=96 ZI-data=2304  
+Program Size: Code=26412 RO-data=932 RW-data=96 ZI-data=2304  
 FromELF: creating hex file...
-"projectdeneme\projectdeneme.axf" - 0 Error(s), 0 Warning(s).
+"projectdeneme\projectdeneme.axf" - 0 Error(s), 3 Warning(s).
 
 <h2>Software Packages used:</h2>
 
