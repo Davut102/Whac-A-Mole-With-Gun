@@ -25,6 +25,7 @@
 #include <stdio.h> // sprintf komutunu kullanabilmek için
 #include "LCD.h"
 #include <string.h>
+#include <math.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -39,6 +40,7 @@ uint16_t leds[] = {GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15};
 #define TIM2_MAX_PERIOD 63999
 #define POTENTIOMETER_MIN_VALUE 0
 #define POTENTIOMETER_MAX_VALUE 4095
+#define UART_BUFFER_SIZE 100
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -60,6 +62,7 @@ DMA_HandleTypeDef hdma_usart1_tx;
 static uint16_t previous_adc_value = 0xFFFF;
 static uint16_t current_prescaler = 0xFFFF;
 static uint32_t current_period = 0xFFFFFFFF;
+uint8_t arr[13] = "Hello World\n\r";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,6 +107,10 @@ char Score[4][16] = {
 	int flag;
 	char score_str[20];
 	char score_str2[20];
+
+
+
+uint8_t data_index = 0;
 
 
 
@@ -153,6 +160,24 @@ int main(void)
 	HAL_ADC_Start_IT(&hadc1);
 	lcd_init(_LCD_4BIT, _LCD_FONT_5x8, _LCD_2LINE);
 	HAL_UART_Transmit(&huart1, (uint8_t*)Welcome_msg, strlen(Welcome_msg), 40);
+	
+	uint8_t data[16];
+	
+	
+	//FOR BUZZER
+	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_4);
+	HAL_ADCEx_Calibration_Start(&hadc1);
+	uint32_t adcReturnValue = 0;
+	int8_t n = 0;
+	double_t noteFreq = 440;
+	uint16_t arr = 1000;
+	int8_t song[] = {0, 0, 2, 0, 5, 4, 0, 0, 2, 0, 7, 5, 0, 0, 12, 9, 5, 4, 2, 10, 10,9,5,7,5};
+	int8_t array_length = sizeof(song);
+	
+
+	
+	//FOR UART
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -160,18 +185,34 @@ int main(void)
 
   while (1)
   {
-		
-		HAL_ADC_Start(&hadc2);
-		HAL_ADC_PollForConversion(&hadc2,100);
-		ADC_val = HAL_ADC_GetValue(&hadc2);
-		HAL_ADC_Stop(&hadc2);
-		temp_conv(ADC_val);
-		HAL_Delay(500);
 
+		
+		if ( HAL_ADC_PollForConversion(&hadc1,1000) == HAL_OK){
+			adcReturnValue = HAL_ADC_GetValue(&hadc1);
+			// n = floor(adcReturnValue / 42.217) - 36;
+			for(int i = 0; i <array_length ; i++)
+			{
+			noteFreq = 440*pow(1.059463094359, song[i]);
+			arr = ((double_t)72000000 / noteFreq) / (htim1.Init.Prescaler+ 1) - 1;
+			__HAL_TIM_SET_AUTORELOAD(&htim1, arr);//set the new period
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, (int)arr/2);//keep 50% duty cycle
+			}
+		
+			HAL_Delay(100); 
+			HAL_ADC_Stop(&hadc1);
+			
+		}						
+
+		
+		
+		
+			HAL_ADC_Stop(&hadc1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
+	
+	
   /* USER CODE END 3 */
 }
 
@@ -333,9 +374,9 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 0;
+  htim1.Init.Prescaler = 21;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 65535;
+  htim1.Init.Period = 0xFFFF;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -359,7 +400,7 @@ static void MX_TIM1_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 0;
+  sConfigOC.Pulse = 50;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
@@ -540,7 +581,7 @@ int previousLed = -1;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
-			
+		HAL_UART_Transmit_DMA(&huart1 , arr, 13);
     if (htim->Instance == TIM2)
     {
 			
@@ -654,6 +695,9 @@ void temp_conv(uint16_t temp_var)
 	HAL_UART_Transmit(&huart1, "temp: ", 6, 10); 
 	print_char(var1);
 }
+
+
+
 void print_char(uint32_t num_var)
 {
 	uint8_t char_num_var[] = {"000000\r\n"};
