@@ -57,6 +57,7 @@ TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_tx;
+DMA_HandleTypeDef hdma_usart1_rx;
 
 /* USER CODE BEGIN PV */
 static uint16_t previous_adc_value = 0xFFFF;
@@ -83,24 +84,27 @@ void print_char(uint32_t num_var);
 /* USER CODE BEGIN 0 */
 
 char colors[4][16] = {
-    "  Red   ",   // 0. eleman
-    "  Purple",     // 1. eleman
-    "  Green ",      // 2. eleman
-    "  Blue  ",      // 3. eleman
-    
+    "Red   ",   // 0. eleman
+    "Purple",     // 1. eleman
+    "Green ",      // 2. eleman
+    "Blue  ",      // 3. eleman
 };
 
+char Score[4][16] = {
+    "0",   // 0. eleman
+    "1",     // 1. eleman
+    "2",      // 2. eleman
+    "3",      // 3. eleman
+};
 
-
-
-
-	int colorNumber_keeper;
-	int ledNumber_keeper;
-	int score;
-	int score2;
-	int flag;
-	char score_str[20];
-	char score_str2[20];
+uint8_t arr_name[20];
+int colorNumber_keeper;
+int ledNumber_keeper;
+int score;
+int score2;
+int flag;
+char score_str[20];
+char score_str2[20];
 
 
 
@@ -120,7 +124,7 @@ uint8_t data_index = 0;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t *Welcome_msg = {"Merhabalar, sicaklik bilgileri geliyor \r\n"};
+	uint8_t *Welcome_msg = {"Merhabalar, sicaklik bilgileri geliyor.\r\n"};
 	uint16_t ADC_val; 
   /* USER CODE END 1 */
 
@@ -130,7 +134,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -155,12 +158,16 @@ int main(void)
 	lcd_init(_LCD_4BIT, _LCD_FONT_5x8, _LCD_2LINE);
 	HAL_UART_Transmit(&huart1, (uint8_t*)Welcome_msg, strlen(Welcome_msg), 40);
 	
+	HAL_TIM_Base_Stop(&htim2);
+	HAL_UART_Receive(&huart1, (uint8_t*)arr_name, 20, 5000);
+	HAL_TIM_Base_Start_IT(&htim2);
+	
 	uint8_t data[16];
 	
 	
 	//FOR BUZZER
 	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_4);
-	HAL_ADCEx_Calibration_Start(&hadc2);
+	HAL_ADCEx_Calibration_Start(&hadc1);
 	uint32_t adcReturnValue = 0;
 	int8_t n = 0;
 	double_t noteFreq = 440;
@@ -180,9 +187,9 @@ int main(void)
   while (1)
   {
 
-
-		if ( HAL_ADC_PollForConversion(&hadc2,1000) == HAL_OK){
-			adcReturnValue = HAL_ADC_GetValue(&hadc2);
+		
+		if ( HAL_ADC_PollForConversion(&hadc1,1000) == HAL_OK){
+			adcReturnValue = HAL_ADC_GetValue(&hadc1);
 			// n = floor(adcReturnValue / 42.217) - 36;
 			for(int i = 0; i <array_length ; i++)
 			{
@@ -192,15 +199,15 @@ int main(void)
 			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, (int)arr/2);//keep 50% duty cycle
 			}
 		
-			HAL_Delay(1); 
-			HAL_ADC_Stop(&hadc2);
+			HAL_Delay(100); 
+			HAL_ADC_Stop(&hadc1);
 			
 		}						
 
 		
 		
 		
-			HAL_ADC_Stop(&hadc2);
+			HAL_ADC_Stop(&hadc1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -512,6 +519,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+  /* DMA1_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 
 }
 
@@ -576,7 +586,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
 		HAL_UART_Transmit_DMA(&huart1 , arr, 13);
-		
     if (htim->Instance == TIM2)
     {
 			
@@ -591,14 +600,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_GPIO_WritePin(GPIOB, leds[random], GPIO_PIN_SET); 
 				colorNumber_keeper = random2;
 				ledNumber_keeper = random;
-				
-				
-				sprintf(score_str, " %s", colors[random2]);
-				lcd_print(1, 1, score_str);
-				sprintf(score_str, " %d", score);
+				lcd_print(1, 1, colors[random2]);
+				sprintf(score_str, "%d", score);
 				lcd_print(2, 1, score_str);
-				sprintf(score_str2, " %d", score2);
-				lcd_print(2, 5, score_str2);
+				sprintf(score_str2, "%d", score2);
+				lcd_print(2,5, score_str2);
 				
 				
         previousLed = random; 
@@ -690,7 +696,7 @@ void temp_conv(uint16_t temp_var)
 {
 	uint32_t var1 = 0;
 	var1 = (temp_var*8.05);
-
+	HAL_UART_Transmit(&huart1, "temp: ", 6, 10); 
 	print_char(var1);
 }
 
@@ -713,8 +719,17 @@ void print_char(uint32_t num_var)
 	}
 	char_num_var[i] = (num_var%10) + 48;
 
-	
+	HAL_UART_Transmit(&huart1, &char_num_var[0], 8, 15);
 	HAL_Delay(1);
+}
+
+void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(huart);
+  /* NOTE: This function should not be modified, when the callback is needed,
+           the HAL_UART_TxHalfCpltCallback could be implemented in the user file
+   */
 }
 
 
