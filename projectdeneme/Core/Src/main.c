@@ -83,20 +83,14 @@ void print_char(uint32_t num_var);
 /* USER CODE BEGIN 0 */
 
 char colors[4][16] = {
-    "Red   ",   // 0. eleman
-    "Purple",     // 1. eleman
-    "Green ",      // 2. eleman
-    "Blue  ",      // 3. eleman
+    "  Red   ",   // 0. eleman
+    "  Purple",     // 1. eleman
+    "  Green ",      // 2. eleman
+    "  Blue  ",      // 3. eleman
     
 };
 
-char Score[4][16] = {
-    "0",   // 0. eleman
-    "1",     // 1. eleman
-    "2",      // 2. eleman
-    "3",      // 3. eleman
-    
-};
+
 
 
 
@@ -166,7 +160,7 @@ int main(void)
 	
 	//FOR BUZZER
 	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_4);
-	HAL_ADCEx_Calibration_Start(&hadc1);
+	HAL_ADCEx_Calibration_Start(&hadc2);
 	uint32_t adcReturnValue = 0;
 	int8_t n = 0;
 	double_t noteFreq = 440;
@@ -186,9 +180,9 @@ int main(void)
   while (1)
   {
 
-		
-		if ( HAL_ADC_PollForConversion(&hadc1,1000) == HAL_OK){
-			adcReturnValue = HAL_ADC_GetValue(&hadc1);
+
+		if ( HAL_ADC_PollForConversion(&hadc2,1000) == HAL_OK){
+			adcReturnValue = HAL_ADC_GetValue(&hadc2);
 			// n = floor(adcReturnValue / 42.217) - 36;
 			for(int i = 0; i <array_length ; i++)
 			{
@@ -198,15 +192,15 @@ int main(void)
 			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, (int)arr/2);//keep 50% duty cycle
 			}
 		
-			HAL_Delay(100); 
-			HAL_ADC_Stop(&hadc1);
+			HAL_Delay(1); 
+			HAL_ADC_Stop(&hadc2);
 			
 		}						
 
 		
 		
 		
-			HAL_ADC_Stop(&hadc1);
+			HAL_ADC_Stop(&hadc2);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -582,6 +576,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
 		HAL_UART_Transmit_DMA(&huart1 , arr, 13);
+		
     if (htim->Instance == TIM2)
     {
 			
@@ -596,11 +591,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_GPIO_WritePin(GPIOB, leds[random], GPIO_PIN_SET); 
 				colorNumber_keeper = random2;
 				ledNumber_keeper = random;
-				lcd_print(1, 1, colors[random2]);
-				sprintf(score_str, "%d", score);
+				
+				
+				sprintf(score_str, " %s", colors[random2]);
+				lcd_print(1, 1, score_str);
+				sprintf(score_str, " %d", score);
 				lcd_print(2, 1, score_str);
-				sprintf(score_str2, "%d", score2);
-				lcd_print(2,5, score_str2);
+				sprintf(score_str2, " %d", score2);
+				lcd_print(2, 5, score_str2);
 				
 				
         previousLed = random; 
@@ -692,7 +690,7 @@ void temp_conv(uint16_t temp_var)
 {
 	uint32_t var1 = 0;
 	var1 = (temp_var*8.05);
-	HAL_UART_Transmit(&huart1, "temp: ", 6, 10); 
+
 	print_char(var1);
 }
 
@@ -715,17 +713,8 @@ void print_char(uint32_t num_var)
 	}
 	char_num_var[i] = (num_var%10) + 48;
 
-	HAL_UART_Transmit(&huart1, &char_num_var[0], 8, 15);
+	
 	HAL_Delay(1);
-}
-
-void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(huart);
-  /* NOTE: This function should not be modified, when the callback is needed,
-           the HAL_UART_TxHalfCpltCallback could be implemented in the user file
-   */
 }
 
 
