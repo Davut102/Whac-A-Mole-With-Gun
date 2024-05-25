@@ -62,7 +62,6 @@ DMA_HandleTypeDef hdma_usart1_tx;
 static uint16_t previous_adc_value = 0xFFFF;
 static uint16_t current_prescaler = 0xFFFF;
 static uint32_t current_period = 0xFFFFFFFF;
-uint8_t arr[13] = "Hello World\n\r";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,7 +92,7 @@ char colors[4][16] = {
 
 
 
-
+	uint8_t arr_name[40];
 	int colorNumber_keeper;
 	int ledNumber_keeper;
 	int score;
@@ -120,7 +119,7 @@ uint8_t data_index = 0;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t *Welcome_msg = {"Merhabalar, sicaklik bilgileri geliyor \r\n"};
+	uint8_t *Welcome_msg = {"Write Your Name. \r\n"};
 	uint16_t ADC_val; 
   /* USER CODE END 1 */
 
@@ -153,7 +152,8 @@ int main(void)
 	MX_ADC1_Init();
 	HAL_ADC_Start_IT(&hadc1);
 	lcd_init(_LCD_4BIT, _LCD_FONT_5x8, _LCD_2LINE);
-	HAL_UART_Transmit(&huart1, (uint8_t*)Welcome_msg, strlen(Welcome_msg), 40);
+	HAL_UART_Transmit(&huart1, Welcome_msg, 20, 5000);
+	HAL_UART_Receive(&huart1, (uint8_t*)arr_name, 20, 5000);
 	
 	uint8_t data[16];
 	
@@ -575,7 +575,7 @@ int previousLed = -1;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
-		HAL_UART_Transmit_DMA(&huart1 , arr, 13);
+		HAL_UART_Transmit_DMA(&huart1 , arr_name, 40);
 		
     if (htim->Instance == TIM2)
     {
