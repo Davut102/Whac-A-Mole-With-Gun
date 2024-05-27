@@ -77,6 +77,7 @@ static void MX_USART1_UART_Init(void);
 void temp_conv(uint16_t temp_var);
 void print_char(uint32_t num_var);
 char *Game_Over = {"   Game over!!!\r\n"};
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -104,10 +105,17 @@ char colors[4][16] = {
 	char score_str2[20];
 	int game_time=0;
 	int temp_game_time=0;
+	char *WinnerText = {" Winner is: \r\n"};
+	char *WinnerText2 = {" with score \r\n"};
+	char *Equal = {"There is no winner!"};
+	int winnerScore;
+	char winner[40];
+	uint8_t *Welcome_msg = {"Write name of player1.\r\n"};
+	uint8_t *new_line = {"\r\n"};
+	uint8_t *Welcome_msg2 = {"Write name of player2.\r\n"};
+	uint8_t data_index = 0;
 
-
-uint8_t data_index = 0;
-
+		 
 
 
 
@@ -122,9 +130,7 @@ uint8_t data_index = 0;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t *Welcome_msg = {"Write name of player1.\r\n"};
-	uint8_t *new_line = {"\r\n"};
-	uint8_t *Welcome_msg2 = {"Write name of player2.\r\n"};
+
 	
 	uint16_t ADC_val; 
   /* USER CODE END 1 */
@@ -159,14 +165,13 @@ int main(void)
 	HAL_ADC_Start_IT(&hadc1);
 	lcd_init(_LCD_4BIT, _LCD_FONT_5x10, _LCD_2LINE);
 	
-	
-		HAL_UART_Transmit(&huart1, Welcome_msg, 30, 5000);
+		HAL_UART_Transmit(&huart1, Welcome_msg, 30, 1000);
 		HAL_UART_Receive(&huart1, (uint8_t*)USER1, 20, 5000);
 		HAL_UART_Transmit(&huart1, new_line, 2, 1);
-		HAL_UART_Transmit(&huart1, Welcome_msg, 30, 5000);
+		HAL_UART_Transmit(&huart1, Welcome_msg2, 30, 1000);
 		HAL_UART_Receive(&huart1, (uint8_t*)USER2, 20, 5000);
-	
-	
+		HAL_UART_Transmit(&huart1, new_line, 2, 1);
+		
 	uint8_t data[16];
 	
 	
@@ -584,13 +589,11 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 int previousLed = -1;
-
+int user_taken=0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
-		HAL_UART_Transmit_DMA(&huart1 , USER1, 40);
-		HAL_UART_Transmit_DMA(&huart1 , USER2, 40);
-		
+	
     if (htim->Instance == TIM2)
     {
 			
@@ -620,7 +623,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         previousLed = random; 
 				
 				game_time += temp_game_time;
-				if(game_time==60000){
+				if(game_time==20000){
 					HAL_TIM_Base_Stop_IT(&htim2); // Stop Timer 2 interrupt
 					HAL_ADC_Stop_IT(&hadc1);      // Stop ADC1 interrupt
 					HAL_TIM_Base_Stop_IT(&htim1);
@@ -630,10 +633,25 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 					HAL_GPIO_WritePin(GPIOB, leds[3], GPIO_PIN_RESET);
 					lcd_cmd(_CLEAR);
 					lcd_print(7, 1, Game_Over);
-				sprintf(score_str, " %d ", score);
-				lcd_print(2, 1, score_str);
-				sprintf(score_str2, " %d ", score2);
-				lcd_print(2, 6, score_str2);
+					
+					if(score>score2){
+						winnerScore=score;
+						HAL_UART_Transmit_DMA(&huart1 , USER1, 10);
+						lcd_print(2, 1, WinnerText2);
+						
+					}else if(score<score2){
+						winnerScore=score2;
+						HAL_UART_Transmit_DMA(&huart1 , USER2, 40);
+						lcd_print(2, 1, WinnerText2);
+						
+					}else{
+						
+						exit(1);
+					}
+				sprintf(score_str, " %d ", winnerScore);
+				lcd_print(2, 12, score_str);
+							
+							
 					
 					
 				}
