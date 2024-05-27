@@ -128,6 +128,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
 	uint8_t *Welcome_msg = {"Merhabalar, sicaklik bilgileri geliyor \r\n"};
 	uint16_t ADC_val; 
+	
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -158,8 +159,23 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim2);
 	MX_ADC1_Init();
 	HAL_ADC_Start_IT(&hadc1);
+<<<<<<< Updated upstream
 	lcd_init(_LCD_4BIT, _LCD_FONT_5x8, _LCD_2LINE);
 	HAL_UART_Transmit(&huart1, (uint8_t*)Welcome_msg, strlen(Welcome_msg), 40);
+=======
+	lcd_init(_LCD_4BIT, _LCD_FONT_5x10, _LCD_2LINE);
+	
+	
+		HAL_UART_Transmit(&huart1, Welcome_msg, 30, 5000);
+		HAL_Delay(10);
+		HAL_UART_Receive(&huart1, (uint8_t*)USER1, 20, 5000);
+		HAL_UART_Transmit(&huart1, new_line, 2, 1);
+		HAL_Delay(10);
+		HAL_UART_Transmit(&huart1, Welcome_msg, 30, 5000);
+		HAL_Delay(10);
+		HAL_UART_Receive(&huart1, (uint8_t*)USER2, 20, 5000);
+	
+>>>>>>> Stashed changes
 	
 	uint8_t data[16];
 	
@@ -201,13 +217,24 @@ int main(void)
 			HAL_Delay(100); 
 			HAL_ADC_Stop(&hadc1);
 			
+			
 		}						
 
 		
 		
+<<<<<<< Updated upstream
 		
 			HAL_ADC_Stop(&hadc1);
+=======
+			HAL_ADC_PollForConversion(&hadc2,100);
+			ADC_val = HAL_ADC_GetValue(&hadc2);
+			HAL_ADC_Stop(&hadc2);
+			temp_conv(ADC_val);
+			HAL_Delay(500);
+		
+>>>>>>> Stashed changes
     /* USER CODE END WHILE */
+		
 
     /* USER CODE BEGIN 3 */
   }
@@ -692,7 +719,13 @@ void temp_conv(uint16_t temp_var)
 {
 	uint32_t var1 = 0;
 	var1 = (temp_var*8.05);
+<<<<<<< Updated upstream
 	HAL_UART_Transmit(&huart1, "temp: ", 6, 10); 
+=======
+	HAL_UART_Transmit_DMA(&huart1,"temp: ", 6);
+	lcd_print(2, 1, var1);
+
+>>>>>>> Stashed changes
 	print_char(var1);
 }
 
@@ -715,7 +748,11 @@ void print_char(uint32_t num_var)
 	}
 	char_num_var[i] = (num_var%10) + 48;
 
+<<<<<<< Updated upstream
 	HAL_UART_Transmit(&huart1, &char_num_var[0], 8, 15);
+=======
+	HAL_UART_Transmit_DMA(&huart1, &char_num_var[0], 8);
+>>>>>>> Stashed changes
 	HAL_Delay(1);
 }
 
