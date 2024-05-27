@@ -76,6 +76,7 @@ static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void temp_conv(uint16_t temp_var);
 void print_char(uint32_t num_var);
+char *Game_Over = {"   Game over!!!\r\n"};
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -92,7 +93,8 @@ char colors[4][16] = {
 
 
 
-	uint8_t arr_name[40];
+	uint8_t USER1[40];
+	uint8_t USER2[40];
 	int colorNumber_keeper;
 	int ledNumber_keeper;
 	int score;
@@ -100,7 +102,8 @@ char colors[4][16] = {
 	int flag;
 	char score_str[20];
 	char score_str2[20];
-
+	int game_time=0;
+	int temp_game_time=0;
 
 
 uint8_t data_index = 0;
@@ -119,7 +122,10 @@ uint8_t data_index = 0;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t *Welcome_msg = {"Write Your Name. \r\n"};
+	uint8_t *Welcome_msg = {"Write name of player1.\r\n"};
+	uint8_t *new_line = {"\r\n"};
+	uint8_t *Welcome_msg2 = {"Write name of player2.\r\n"};
+	
 	uint16_t ADC_val; 
   /* USER CODE END 1 */
 
@@ -151,9 +157,15 @@ int main(void)
 	HAL_TIM_Base_Start_IT(&htim2);
 	MX_ADC1_Init();
 	HAL_ADC_Start_IT(&hadc1);
-	lcd_init(_LCD_4BIT, _LCD_FONT_5x8, _LCD_2LINE);
-	HAL_UART_Transmit(&huart1, Welcome_msg, 20, 5000);
-	HAL_UART_Receive(&huart1, (uint8_t*)arr_name, 20, 5000);
+	lcd_init(_LCD_4BIT, _LCD_FONT_5x10, _LCD_2LINE);
+	
+	
+		HAL_UART_Transmit(&huart1, Welcome_msg, 30, 5000);
+		HAL_UART_Receive(&huart1, (uint8_t*)USER1, 20, 5000);
+		HAL_UART_Transmit(&huart1, new_line, 2, 1);
+		HAL_UART_Transmit(&huart1, Welcome_msg, 30, 5000);
+		HAL_UART_Receive(&huart1, (uint8_t*)USER2, 20, 5000);
+	
 	
 	uint8_t data[16];
 	
@@ -165,7 +177,7 @@ int main(void)
 	int8_t n = 0;
 	double_t noteFreq = 440;
 	uint16_t arr = 1000;
-	int8_t song[] = {0, 0, 2, 0, 5, 4, 0, 0, 2, 0, 7, 5, 0, 0, 12, 9, 5, 4, 2, 10, 10,9,5,7,5};
+	int8_t song[] = {0, 0, 2, 0, 5, 4, 0, 0, 2, 0};
 	int8_t array_length = sizeof(song);
 	
 
@@ -190,10 +202,11 @@ int main(void)
 			arr = ((double_t)72000000 / noteFreq) / (htim1.Init.Prescaler+ 1) - 1;
 			__HAL_TIM_SET_AUTORELOAD(&htim1, arr);//set the new period
 			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, (int)arr/2);//keep 50% duty cycle
+				
 			}
 		
-			HAL_Delay(1); 
-			HAL_ADC_Stop(&hadc2);
+			  HAL_ADC_Stop(&hadc2);
+        HAL_ADC_Start(&hadc2);
 			
 		}						
 
@@ -575,7 +588,8 @@ int previousLed = -1;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 
-		HAL_UART_Transmit_DMA(&huart1 , arr_name, 40);
+		HAL_UART_Transmit_DMA(&huart1 , USER1, 40);
+		HAL_UART_Transmit_DMA(&huart1 , USER2, 40);
 		
     if (htim->Instance == TIM2)
     {
@@ -588,20 +602,41 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         
         int random = rand() % 4; 
 				int random2 = rand() % 4;
+				
+			
         HAL_GPIO_WritePin(GPIOB, leds[random], GPIO_PIN_SET); 
 				colorNumber_keeper = random2;
 				ledNumber_keeper = random;
 				
-				
-				sprintf(score_str, " %s", colors[random2]);
+			
+				sprintf(score_str, " %s ", colors[random2]);
 				lcd_print(1, 1, score_str);
-				sprintf(score_str, " %d", score);
+				sprintf(score_str, " %d ", score);
 				lcd_print(2, 1, score_str);
-				sprintf(score_str2, " %d", score2);
-				lcd_print(2, 5, score_str2);
+				sprintf(score_str2, " %d ", score2);
+				lcd_print(2, 6, score_str2);
 				
 				
         previousLed = random; 
+				
+				game_time += temp_game_time;
+				if(game_time==60000){
+					HAL_TIM_Base_Stop_IT(&htim2); // Stop Timer 2 interrupt
+					HAL_ADC_Stop_IT(&hadc1);      // Stop ADC1 interrupt
+					HAL_TIM_Base_Stop_IT(&htim1);
+					HAL_GPIO_WritePin(GPIOB, leds[0], GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOB, leds[1], GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOB, leds[2], GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOB, leds[3], GPIO_PIN_RESET);
+					lcd_cmd(_CLEAR);
+					lcd_print(7, 1, Game_Over);
+				sprintf(score_str, " %d ", score);
+				lcd_print(2, 1, score_str);
+				sprintf(score_str2, " %d ", score2);
+				lcd_print(2, 6, score_str2);
+					
+					
+				}
     }
 		
 }
@@ -649,14 +684,20 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 
     // ADC degerine göre yeni prescaler ve periyot degerlerini belirleyin
     if (adc_value < 0x555) { // ADC degeri 1.1 V'nin altindaysa
-        new_prescaler = 63;
+        new_prescaler = 159;
         new_period = 62499;
+				game_time=1250;
+				temp_game_time=1250;
     } else if (adc_value < 0x6C2) { // ADC degeri 2.2 V'nin altindaysa
-        new_prescaler = 95;
+        new_prescaler = 191;
         new_period = 62499;
+			  game_time=1500;
+			temp_game_time=1500;
     } else { // Diger durumlar
         new_prescaler = 249;
         new_period = 63999;
+				game_time=2000;
+			temp_game_time=2000;
     }
 
     // Eger yeni ayarlar mevcut ayarlardan farkliysa, timer'i yeniden yapilandirin
