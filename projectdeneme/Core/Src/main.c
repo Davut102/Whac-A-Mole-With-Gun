@@ -94,8 +94,8 @@ char colors[4][16] = {
 
 
 
-	uint8_t USER1[40];
-	uint8_t USER2[40];
+	uint8_t USER1[10];
+	uint8_t USER2[10];
 	int colorNumber_keeper;
 	int ledNumber_keeper;
 	int score;
@@ -105,8 +105,8 @@ char colors[4][16] = {
 	char score_str2[20];
 	int game_time=0;
 	int temp_game_time=0;
-	char *WinnerText = {" Winner is: \r\n"};
-	char *WinnerText2 = {" with score \r\n"};
+	char *WinnerText = {" Plyr1 won:\r\n"};
+	char *WinnerText2 = {" Plyr2 won:\r\n"};
 	char *Equal = {"There is no winner!"};
 	int winnerScore;
 	char winner[40];
@@ -165,11 +165,11 @@ int main(void)
 	HAL_ADC_Start_IT(&hadc1);
 	lcd_init(_LCD_4BIT, _LCD_FONT_5x10, _LCD_2LINE);
 	
-		HAL_UART_Transmit(&huart1, Welcome_msg, 30, 1000);
-		HAL_UART_Receive(&huart1, (uint8_t*)USER1, 20, 5000);
+		HAL_UART_Transmit(&huart1, Welcome_msg, 25, 5000);
+		HAL_UART_Receive(&huart1, (uint8_t*)USER1, 25, 5000);
 		HAL_UART_Transmit(&huart1, new_line, 2, 1);
-		HAL_UART_Transmit(&huart1, Welcome_msg2, 30, 1000);
-		HAL_UART_Receive(&huart1, (uint8_t*)USER2, 20, 5000);
+		HAL_UART_Transmit(&huart1, Welcome_msg2, 25, 5000);
+		HAL_UART_Receive(&huart1, (uint8_t*)USER2, 25, 5000);
 		HAL_UART_Transmit(&huart1, new_line, 2, 1);
 		
 	uint8_t data[16];
@@ -623,7 +623,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         previousLed = random; 
 				
 				game_time += temp_game_time;
-				if(game_time==20000){
+				if(game_time==60000){
 					HAL_TIM_Base_Stop_IT(&htim2); // Stop Timer 2 interrupt
 					HAL_ADC_Stop_IT(&hadc1);      // Stop ADC1 interrupt
 					HAL_TIM_Base_Stop_IT(&htim1);
@@ -637,11 +637,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 					if(score>score2){
 						winnerScore=score;
 						HAL_UART_Transmit_DMA(&huart1 , USER1, 10);
-						lcd_print(2, 1, WinnerText2);
+						lcd_print(2, 1, WinnerText);
 						
 					}else if(score<score2){
 						winnerScore=score2;
-						HAL_UART_Transmit_DMA(&huart1 , USER2, 40);
+						HAL_UART_Transmit_DMA(&huart1 , USER2, 10);
 						lcd_print(2, 1, WinnerText2);
 						
 					}else{
