@@ -56,14 +56,13 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 
 UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart1_tx;
-DMA_HandleTypeDef hdma_usart1_rx;
 
 /* USER CODE BEGIN PV */
 static uint16_t previous_adc_value = 0xFFFF;
 static uint16_t current_prescaler = 0xFFFF;
 static uint32_t current_period = 0xFFFFFFFF;
-uint8_t arr[13] = "Hello World\n\r";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -75,29 +74,27 @@ static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void temp_conv(uint16_t temp_var);
 void print_char(uint32_t num_var);
+char *Game_Over = {"   Game over!!!\r\n"};
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
 char colors[4][16] = {
-    "Red   ",   // 0. eleman
-    "Purple",     // 1. eleman
-    "Green ",      // 2. eleman
-    "Blue  ",      // 3. eleman
+    "  Red   ",   // 0. eleman
+    "  Purple",     // 1. eleman
+    "  Green ",      // 2. eleman
+    "  Blue  ",      // 3. eleman
+    
 };
 
-char Score[4][16] = {
-    "0",   // 0. eleman
-    "1",     // 1. eleman
-    "2",      // 2. eleman
-    "3",      // 3. eleman
-};
-
-uint8_t arr_name[20];
+uint8_t USER1[10];
+uint8_t USER2[10];
 int colorNumber_keeper;
 int ledNumber_keeper;
 int score;
@@ -105,15 +102,18 @@ int score2;
 int flag;
 char score_str[20];
 char score_str2[20];
-
-
-
+int game_time=0;
+int temp_game_time=0;
+char *WinnerText = {" Plyr1 won:\r\n"};
+char *WinnerText2 = {" Plyr2 won:\r\n"};
+char *Equal = {"There is no winner!"};
+int winnerScore;
+char winner[40];
+uint8_t *Welcome_msg = {"Write name of player1.\r\n"};
+uint8_t *new_line = {"\r\n"};
+uint8_t *Welcome_msg2 = {"Write name of player2.\r\n"};
 uint8_t data_index = 0;
-
-
-
-
-
+uint8_t bt_rx_data;
 
 /* USER CODE END 0 */
 
@@ -124,7 +124,8 @@ uint8_t data_index = 0;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	uint8_t *Welcome_msg = {"Merhabalar, sicaklik bilgileri geliyor.\r\n"};
+
+	
 	uint16_t ADC_val; 
   /* USER CODE END 1 */
 
@@ -134,6 +135,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -151,31 +153,23 @@ int main(void)
   MX_ADC2_Init();
   MX_TIM1_Init();
   MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 	HAL_TIM_Base_Start_IT(&htim2);
 	MX_ADC1_Init();
 	HAL_ADC_Start_IT(&hadc1);
-	lcd_init(_LCD_4BIT, _LCD_FONT_5x8, _LCD_2LINE);
-	HAL_UART_Transmit(&huart1, (uint8_t*)Welcome_msg, strlen(Welcome_msg), 40);
+	lcd_init(_LCD_4BIT, _LCD_FONT_5x10, _LCD_2LINE);
 	
-	HAL_TIM_Base_Stop(&htim2);
-	HAL_UART_Receive(&huart1, (uint8_t*)arr_name, 20, 5000);
-	HAL_TIM_Base_Start_IT(&htim2);
+	HAL_UART_Transmit(&huart1, Welcome_msg, 25, 5000);
+	HAL_UART_Receive(&huart1, (uint8_t*)USER1, 25, 5000);	
+	HAL_UART_Transmit(&huart1, new_line, 2, 1);
+	HAL_UART_Transmit(&huart1, Welcome_msg2, 25, 5000);
+	HAL_UART_Receive(&huart1, (uint8_t*)USER2, 25, 5000);
+	HAL_UART_Transmit(&huart1, new_line, 2, 1);
 	
+	HAL_UART_Receive_IT(&huart2, &bt_rx_data, 1);
+		
 	uint8_t data[16];
-	
-	
-	//FOR BUZZER
-	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_4);
-	HAL_ADCEx_Calibration_Start(&hadc1);
-	uint32_t adcReturnValue = 0;
-	int8_t n = 0;
-	double_t noteFreq = 440;
-	uint16_t arr = 1000;
-	int8_t song[] = {0, 0, 2, 0, 5, 4, 0, 0, 2, 0, 7, 5, 0, 0, 12, 9, 5, 4, 2, 10, 10,9,5,7,5};
-	int8_t array_length = sizeof(song);
-	
-
 	
 	//FOR UART
 
@@ -186,28 +180,7 @@ int main(void)
 
   while (1)
   {
-
 		
-		if ( HAL_ADC_PollForConversion(&hadc1,1000) == HAL_OK){
-			adcReturnValue = HAL_ADC_GetValue(&hadc1);
-			// n = floor(adcReturnValue / 42.217) - 36;
-			for(int i = 0; i <array_length ; i++)
-			{
-			noteFreq = 440*pow(1.059463094359, song[i]);
-			arr = ((double_t)72000000 / noteFreq) / (htim1.Init.Prescaler+ 1) - 1;
-			__HAL_TIM_SET_AUTORELOAD(&htim1, arr);//set the new period
-			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, (int)arr/2);//keep 50% duty cycle
-			}
-		
-			HAL_Delay(100); 
-			HAL_ADC_Stop(&hadc1);
-			
-		}						
-
-		
-		
-		
-			HAL_ADC_Stop(&hadc1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -507,6 +480,39 @@ static void MX_USART1_UART_Init(void)
 }
 
 /**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 9600;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -519,9 +525,6 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
-  /* DMA1_Channel5_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 
 }
 
@@ -542,14 +545,14 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LCD_EN_Pin|LCD_RS_Pin|LCD_D4_Pin|LCD_D5_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LCD_EN_Pin|LCD_D4_Pin|LCD_D5_Pin|LCD_RS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LCD_D6_Pin|LCD_D7_Pin|GPIO_PIN_12|GPIO_PIN_13
                           |GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : LCD_EN_Pin LCD_RS_Pin LCD_D4_Pin LCD_D5_Pin */
-  GPIO_InitStruct.Pin = LCD_EN_Pin|LCD_RS_Pin|LCD_D4_Pin|LCD_D5_Pin;
+  /*Configure GPIO pins : LCD_EN_Pin LCD_D4_Pin LCD_D5_Pin LCD_RS_Pin */
+  GPIO_InitStruct.Pin = LCD_EN_Pin|LCD_D4_Pin|LCD_D5_Pin|LCD_RS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -581,11 +584,9 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 int previousLed = -1;
-
+int user_taken=0;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-
-		HAL_UART_Transmit_DMA(&huart1 , arr, 13);
     if (htim->Instance == TIM2)
     {
 			
@@ -597,27 +598,57 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         
         int random = rand() % 4; 
 				int random2 = rand() % 4;
+				
+			
         HAL_GPIO_WritePin(GPIOB, leds[random], GPIO_PIN_SET); 
 				colorNumber_keeper = random2;
 				ledNumber_keeper = random;
-				lcd_print(1, 1, colors[random2]);
-				sprintf(score_str, "%d", score);
+				
+			
+				sprintf(score_str, " %s ", colors[random2]);
+				lcd_print(1, 1, score_str);
+				sprintf(score_str, " %d ", score);
 				lcd_print(2, 1, score_str);
-				sprintf(score_str2, "%d", score2);
-				lcd_print(2,5, score_str2);
+				sprintf(score_str2, " %d ", score2);
+				lcd_print(2, 6, score_str2);
 				
 				
         previousLed = random; 
+				
+				game_time += temp_game_time;
+				if(game_time==60000){
+					HAL_TIM_Base_Stop_IT(&htim2); // Stop Timer 2 interrupt
+					HAL_ADC_Stop_IT(&hadc1);      // Stop ADC1 interrupt
+					HAL_TIM_Base_Stop_IT(&htim1);
+					HAL_GPIO_WritePin(GPIOB, leds[0], GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOB, leds[1], GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOB, leds[2], GPIO_PIN_RESET);
+					HAL_GPIO_WritePin(GPIOB, leds[3], GPIO_PIN_RESET);
+					lcd_cmd(_CLEAR);
+					lcd_print(7, 1, Game_Over);
+					
+					if(score>score2){
+						winnerScore=score;
+						HAL_UART_Transmit_DMA(&huart1 , USER1, 10);
+						lcd_print(2, 1, WinnerText);
+						
+					}else if(score<score2){
+						winnerScore=score2;
+						HAL_UART_Transmit_DMA(&huart1 , USER2, 10);
+						lcd_print(2, 1, WinnerText2);
+						
+					}else{
+						
+						exit(1);
+					}
+				sprintf(score_str, " %d ", winnerScore);
+				lcd_print(2, 12, score_str);
+				}
     }
-		
 }
-
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	
-	
-	 
     if (GPIO_Pin == BUTTON_PIN) 
     {	
 
@@ -627,7 +658,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 				}else if(!(ledNumber_keeper==colorNumber_keeper) && flag==0){
 					score--;
 					flag=1;
-
 				}
     } 
 		if (GPIO_Pin == BUTTON_PIN_2) 
@@ -641,7 +671,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 					flag=1;
 				}
     }
-		
 }
 
 
@@ -655,14 +684,20 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 
     // ADC degerine göre yeni prescaler ve periyot degerlerini belirleyin
     if (adc_value < 0x555) { // ADC degeri 1.1 V'nin altindaysa
-        new_prescaler = 63;
+        new_prescaler = 159;
         new_period = 62499;
+				game_time=1250;
+				temp_game_time=1250;
     } else if (adc_value < 0x6C2) { // ADC degeri 2.2 V'nin altindaysa
-        new_prescaler = 95;
+        new_prescaler = 191;
         new_period = 62499;
+			  game_time=1500;
+			temp_game_time=1500;
     } else { // Diger durumlar
         new_prescaler = 249;
         new_period = 63999;
+				game_time=2000;
+			temp_game_time=2000;
     }
 
     // Eger yeni ayarlar mevcut ayarlardan farkliysa, timer'i yeniden yapilandirin
@@ -692,15 +727,30 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     previous_adc_value = adc_value;
 }
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    if (huart->Instance == USART2)
+    {
+        if (bt_rx_data == '1')
+        {
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
+        }
+        else if (bt_rx_data == '0')
+        {
+            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
+        }
+
+        HAL_UART_Receive_IT(huart, &bt_rx_data, 1);
+    }
+}
+
 void temp_conv(uint16_t temp_var)
 {
 	uint32_t var1 = 0;
 	var1 = (temp_var*8.05);
-	HAL_UART_Transmit(&huart1, "temp: ", 6, 10); 
+
 	print_char(var1);
 }
-
-
 
 void print_char(uint32_t num_var)
 {
@@ -719,19 +769,8 @@ void print_char(uint32_t num_var)
 	}
 	char_num_var[i] = (num_var%10) + 48;
 
-	HAL_UART_Transmit(&huart1, &char_num_var[0], 8, 15);
 	HAL_Delay(1);
 }
-
-void HAL_UART_TxHalfCpltCallback(UART_HandleTypeDef *huart)
-{
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(huart);
-  /* NOTE: This function should not be modified, when the callback is needed,
-           the HAL_UART_TxHalfCpltCallback could be implemented in the user file
-   */
-}
-
 
 /* USER CODE END 4 */
 
