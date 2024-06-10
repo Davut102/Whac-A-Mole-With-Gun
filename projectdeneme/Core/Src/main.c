@@ -127,7 +127,7 @@ uint8_t *new_line = {"\r\n"};
 uint8_t *Welcome_msg2 = {"Write name of player2.\r\n"};
 uint8_t *No_Player={"Player names cannot be null!.\r\n"};
 uint8_t data_index = 0;
-uint8_t bt_rx_data;
+uint8_t bt_rx_data[1];
 float voltage;
 float temperature;
 float temperature2;
@@ -215,7 +215,7 @@ int main(void)
     /* USER CODE END WHILE */
 		if (HAL_UART_Receive(&huart2, &bt_rx_data, 1, HAL_MAX_DELAY) == HAL_OK)
         {
-            if (bt_rx_data == "1")
+            if (bt_rx_data == '1')
             {
                 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
                 HAL_Delay(50);
