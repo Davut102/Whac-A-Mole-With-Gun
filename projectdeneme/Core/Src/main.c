@@ -95,13 +95,13 @@ char colors[4][16] = {
 };
 
 
-bool is_array_empty(uint8_t array[], size_t size) {
+bool is_array_Not_Empty(uint8_t array[], size_t size) {
     for (size_t i = 0; i < size; i++) {
         if (array[i] != 0) {
-            return false;
+            return true;
         }
     }
-    return true;
+    return false;
 }
 	
 	uint16_t ADC_val; 
@@ -182,17 +182,21 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 	
-		while((is_array_empty(USER1, sizeof(USER1)) && is_array_empty(USER2, sizeof(USER2)))==true){
+		while(!is_array_Not_Empty(USER1, sizeof(USER1))){
 			
 		HAL_UART_Transmit(&huart1, No_Player, 30, 2000);
 		HAL_UART_Transmit(&huart1, Welcome_msg, 25, 5000);
-
 		HAL_UART_Receive(&huart1, (uint8_t*)USER1, 25, 5000);
-		
 		HAL_UART_Transmit(&huart1, new_line, 2, 1);
+			
+	}
+		
+	while(!is_array_Not_Empty(USER2, sizeof(USER2))){
+		HAL_UART_Transmit(&huart1, No_Player, 30, 2000);
 		HAL_UART_Transmit(&huart1, Welcome_msg2, 25, 5000);
 		HAL_UART_Receive(&huart1, (uint8_t*)USER2, 35, 5000);
 		HAL_UART_Transmit(&huart1, new_line, 2, 1);
+		
 	}
 	
 	HAL_TIM_Base_Start_IT(&htim2);
