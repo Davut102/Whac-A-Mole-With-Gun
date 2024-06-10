@@ -212,16 +212,17 @@ int main(void)
 
   while (1)
   {
-    /* USER CODE END WHILE */
-		if (HAL_UART_Receive(&huart2, &bt_rx_data, 1, HAL_MAX_DELAY) == HAL_OK)
+		if (HAL_UART_Receive(&huart2, bt_rx_data, 1, HAL_MAX_DELAY) == HAL_OK)
         {
-            if (bt_rx_data == '1')
+            if (bt_rx_data[0] == '1')
             {
                 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
-                HAL_Delay(50);
+                HAL_Delay(100);  // Delay for 100 milliseconds
                 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
             }
         }
+    /* USER CODE END WHILE */
+
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
