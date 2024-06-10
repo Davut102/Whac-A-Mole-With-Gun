@@ -780,17 +780,17 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
     uint32_t new_period;
     // Determine new prescaler and period values ??according to ADC value
     if (adc_value < 0x555) { // If ADC value is below 1.1 V
-        new_prescaler = 159;
+        new_prescaler = 159;//1.250 secods
         new_period = 62499;
 				game_time=1250;
 				temp_game_time=1250;
     } else if (adc_value < 0x6C2) { // If ADC value is below 2.2 V
-        new_prescaler = 191;
+        new_prescaler = 191; //1.5 second
         new_period = 62499;
 			  game_time=1500;
 			temp_game_time=1500;
     } else { // 
-        new_prescaler = 249;
+        new_prescaler = 249;//2 second
         new_period = 63999;
 				game_time=2000;
 			temp_game_time=2000;
