@@ -33,4 +33,5 @@ projectdeneme/main.o: ..\Core\Src\main.c ..\Core\Inc\main.h \
   C:\Keil_v5\ARM\ARMCLANG\include\stdlib.h \
   C:\Keil_v5\ARM\ARMCLANG\include\stdio.h ..\MDK-ARM\LCD.h \
   C:\Keil_v5\ARM\ARMCLANG\include\string.h \
-  C:\Keil_v5\ARM\ARMCLANG\include\math.h
+  C:\Keil_v5\ARM\ARMCLANG\include\math.h \
+  C:\Keil_v5\ARM\ARMCLANG\include\stdbool.h
