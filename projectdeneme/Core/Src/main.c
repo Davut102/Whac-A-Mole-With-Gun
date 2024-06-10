@@ -31,13 +31,15 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-uint16_t leds[] = {GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15};
+uint16_t leds[] = {GPIO_PIN_12, GPIO_PIN_13, GPIO_PIN_14, GPIO_PIN_15}; //GPIO PINS THAT HAVE COLORS
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define BUTTON_PIN GPIO_PIN_11
-#define BUTTON_PIN_2 GPIO_PIN_10
+
+
+#define BUTTON_PIN GPIO_PIN_11 //PLAYER 1
+#define BUTTON_PIN_2 GPIO_PIN_10 //PLAYER 2
 #define TIM2_MAX_PERIOD 63999
 #define POTENTIOMETER_MIN_VALUE 0
 #define POTENTIOMETER_MAX_VALUE 4095
@@ -61,7 +63,7 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart1_tx;
 
 /* USER CODE BEGIN PV */
-static uint16_t previous_adc_value = 0xFFFF;
+static uint16_t previous_adc_value = 0xFFFF; // TO ARRANGE MODS(EASY-NORMAL-HARD)
 static uint16_t current_prescaler = 0xFFFF;
 static uint32_t current_period = 0xFFFFFFFF;
 /* USER CODE END PV */
@@ -77,16 +79,15 @@ static void MX_TIM1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-void temp_conv(uint16_t temp_var);
-void print_char(uint32_t num_var);
-char *Game_Over = {"   Game over!!!\r\n"};
+
+char *Game_Over = {"   Game over!!!\r\n"}; //LCD PRINT
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-char colors[4][16] = {
+char colors[4][16] = { 
     "  Red   ",   // 0. eleman
     "  Purple",     // 1. eleman
     "  Green ",      // 2. eleman
@@ -95,7 +96,7 @@ char colors[4][16] = {
 };
 
 
-bool is_array_Not_Empty(uint8_t array[], size_t size) {
+bool is_array_Not_Empty(uint8_t array[], size_t size) { //TO UNDERSTAND GIVEN INPUT IS NULL
     for (size_t i = 0; i < size; i++) {
         if (array[i] != 0) {
             return true;
@@ -104,10 +105,17 @@ bool is_array_Not_Empty(uint8_t array[], size_t size) {
     return false;
 }
 	
-	uint16_t ADC_val; 
+	//FOR USART_DMA TRANSMISSION_AND_RECEIVE
 	uint8_t USER1[10];
 	uint8_t USER2[10];
 	char transmitBuffer[50];
+	uint8_t *Welcome_msg = {"Write name of player1.\r\n"};
+	uint8_t *new_line = {"\r\n"};
+	uint8_t *Welcome_msg2 = {"Write name of player2.\r\n"};
+	uint8_t *No_Player={"Player names cannot be null!.\r\n"};
+	
+
+	//all of them for synchronization of game(score adding, subtracting,printing winner)
 	int colorNumber_keeper;
 	int ledNumber_keeper;
 	int score;
@@ -121,24 +129,20 @@ bool is_array_Not_Empty(uint8_t array[], size_t size) {
 	char *WinnerText2 = {" Plyr2 won:\r\n"};
 	char *draw = {" Draw\r\n"};
 	char *Equal = {"Scores are equal!(%d)\r\n"};
-	
 	int winnerScore;
 	char winner[40];
-	uint8_t *Welcome_msg = {"Write name of player1.\r\n"};
-	uint8_t *new_line = {"\r\n"};
-	uint8_t *Welcome_msg2 = {"Write name of player2.\r\n"};
-	uint8_t *No_Player={"Player names cannot be null!.\r\n"};
-	uint8_t data_index = 0;
+	
+
+
 
 		 
-
+	//FOR TEMPERATURE
 	float voltage;
 	float temperature;
 	float temperature2;
 	char yazi[32] = " ";
-	
-	int strike = 0;
-	int strike2 = 0;
+	int strike = 0;//TO INDICATE 3 SCORE FOR PLAYER1
+	int strike2 = 0;//TO INDICATE 3 SCORE FOR PLAYER2
 	
 
 
@@ -182,6 +186,7 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 	
+		//USER1 EMPTY OR NOT
 		while(!is_array_Not_Empty(USER1, sizeof(USER1))){
 			
 		HAL_UART_Transmit(&huart1, No_Player, 30, 2000);
@@ -190,7 +195,7 @@ int main(void)
 		HAL_UART_Transmit(&huart1, new_line, 2, 1);
 			
 	}
-		
+	//USER1 EMPTY OR NOT
 	while(!is_array_Not_Empty(USER2, sizeof(USER2))){
 		HAL_UART_Transmit(&huart1, No_Player, 30, 2000);
 		HAL_UART_Transmit(&huart1, Welcome_msg2, 25, 5000);
@@ -203,23 +208,14 @@ int main(void)
 	MX_ADC1_Init();
 	HAL_ADC_Start_IT(&hadc1);
 	HAL_ADC_Start_IT(&hadc2);
-	lcd_init(_LCD_4BIT, _LCD_FONT_5x10, _LCD_2LINE);
+	lcd_init(_LCD_4BIT, _LCD_FONT_5x10, _LCD_2LINE);//LCD INIT
 
-
-
-		
-	uint8_t data[16];
 	
 	
 	//FOR BUZZER
 	HAL_TIM_PWM_Start(&htim1,TIM_CHANNEL_4);
 	HAL_ADCEx_Calibration_Start(&hadc2);
 
-
-	
-
-	
-	//FOR UART
 
   /* USER CODE END 2 */
 
@@ -646,7 +642,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     if (htim->Instance == TIM2)
     {
 			
-				flag =0;
+				flag =0;//TO INDICATE WHEN BUTON1 OR BUTON 2 PRESSED AT 1 TIMER CLOCK. I MEAN, WHEN BUTON 1 PRESSED, BUTON 2 CANNOT GET SCORE.
         if (previousLed != -1) {
             HAL_GPIO_WritePin(GPIOB, leds[previousLed], GPIO_PIN_RESET);
 				
@@ -656,12 +652,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				int random2 = rand() % 4;
 				
 			
-        HAL_GPIO_WritePin(GPIOB, leds[random], GPIO_PIN_SET); 
+        HAL_GPIO_WritePin(GPIOB, leds[random], GPIO_PIN_SET);//RANDOMLY SELECT COLORS
 				colorNumber_keeper = random2;
 				ledNumber_keeper = random;
 				
 			
-				sprintf(score_str, " %s ", colors[random2]);
+				sprintf(score_str, " %s ", colors[random2]); //WRITE COLORS PLAYER1'S SCORE AND PLAYER'S SCORE
 				lcd_print(1, 1, score_str);
 				sprintf(score_str, " %d ", score);
 				lcd_print(2, 1, score_str);
@@ -671,8 +667,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				
         previousLed = random; 
 				
-				game_time += temp_game_time;
-				if(game_time==60000||(temperature==50.0 && temperature2==50.0)){
+				game_time += temp_game_time; //TO INDICATE TOTAL GAME TIME. WE ADDED 60000 MS WHICH IS 1 MIN
+				if(game_time==60000||(temperature==50.0 && temperature2==50.0)){//IF 1 MIN PASSED AND TEMPERATURES OF BOTH GUNS ARE REACHED 50 AND GAME
 					HAL_TIM_Base_Stop_IT(&htim2); // Stop Timer 2 interrupt
 					HAL_ADC_Stop_IT(&hadc1);      // Stop ADC1 interrupt
 					HAL_TIM_Base_Stop_IT(&htim1);
@@ -681,11 +677,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 					HAL_GPIO_WritePin(GPIOB, leds[2], GPIO_PIN_RESET);
 					HAL_GPIO_WritePin(GPIOB, leds[3], GPIO_PIN_RESET);
 					lcd_cmd(_CLEAR);
-					lcd_print(1,1, Game_Over);
+					lcd_print(1,1, Game_Over); // PRINT LCD GAME OVER
 					
 			
 					
-					if(score>score2){
+					if(score>score2){//IF PLAYER1 WON, DO THIS 
 						winnerScore=score;
 						sprintf(transmitBuffer, "Winner is %s and the score is: %d\r\n", USER1,score);
 						HAL_UART_Transmit_DMA(&huart1, (uint8_t*)transmitBuffer, strlen(transmitBuffer));
@@ -693,7 +689,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 						
 				
 						
-					}else if(score<score2){
+					}else if(score<score2){//IF PLAYER2 WON, DO THIS
 						winnerScore=score2;
 						sprintf(transmitBuffer, "Winner is %s and the score is: %d\r\n", USER2,score2);
 						HAL_UART_Transmit_DMA(&huart1, (uint8_t*)transmitBuffer, strlen(transmitBuffer));
@@ -701,7 +697,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 						
 					
 						
-					}else if (score==score2){
+					}else if (score==score2){//IF SCORE1 AND SCORE2 EQUAL, DO THIS
 						
 						winnerScore=score;
 						sprintf(transmitBuffer, "Draw! Scores: %d\r\n",winnerScore);
@@ -721,23 +717,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	 
-    if (GPIO_Pin == BUTTON_PIN && temperature<50.0) 
+		
+    if (GPIO_Pin == BUTTON_PIN && temperature<50.0)//WHEN TEMPERATURE REACHED 50C, DISABLE BUTON.
     {	
 			  
 
-			  if(ledNumber_keeper==colorNumber_keeper && flag==0){
+			  if(ledNumber_keeper==colorNumber_keeper && flag==0){//IF COLOR NUMBER AND COLOR KEEPER IS SAME AND NOBODY CLICKED BUTTONS.
 				score++;	
 			  strike++;
-				flag=1;
-					if(strike==3){
+				flag=1;//WHEN BUTON1 PRESSED, FLAG IS 1. CANNOT INCREASE THE SCORE UNTIL NEXT CLOCK TIME. 
+					if(strike==3){//IF PLAYER 1 GOT 3 SCORE CONSECUTIVE, DECREASE TEMPERATURE BY -10.
 						temperature-=10;
 						strike =0;
 						snprintf(yazi, sizeof(yazi), "Gun_1 temp decreased:%.2fC\r\n", temperature);
 						HAL_UART_Transmit_DMA(&huart1, (uint8_t*)yazi, strlen(yazi));
 					}
 					
-				}else if(!(ledNumber_keeper==colorNumber_keeper) && flag==0){
+				}else if(!(ledNumber_keeper==colorNumber_keeper) && flag==0){//IF DOESNT MATCH, DECREASE SCORE. INCREASE TEMPERATURE BT 10.
 					score--;
 					strike=0;
 					temperature+=10;
@@ -747,21 +743,21 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 
 				}
     } 
-		if (GPIO_Pin == BUTTON_PIN_2 && temperature2<50.0) 
+		if (GPIO_Pin == BUTTON_PIN_2 && temperature2<50.0)//WHEN TEMPERATURE REACHED 50C, DISABLE BUTON.
     {	
 				
 
-			  if(ledNumber_keeper==colorNumber_keeper && flag==0){
+			  if(ledNumber_keeper==colorNumber_keeper && flag==0){//IF COLOR NUMBER AND COLOR KEEPER IS SAME AND NOBODY CLICKED BUTTONS.
 				score2++;	
-				flag=1;
+				flag=1;//WHEN BUTON1 PRESSED, FLAG IS 1. CANNOT INCREASE THE SCORE UNTIL NEXT CLOCK TIME. 
 				strike2++;
-					if(strike2==3){
+					if(strike2==3){//IF PLAYER 2 GOT 3 SCORE CONSECUTIVE, DECREASE TEMPERATURE BY -10.
 						temperature2-=10;
 						strike2 =0;
 						snprintf(yazi, sizeof(yazi), "Gun_2 temp decreased:%.2fC\r\n", temperature2);
 						HAL_UART_Transmit_DMA(&huart1, (uint8_t*)yazi, strlen(yazi));
 					}
-				}else if(!(ledNumber_keeper==colorNumber_keeper)&& flag==0){
+				}else if(!(ledNumber_keeper==colorNumber_keeper)&& flag==0){//IF DOESNT MATCH, DECREASE SCORE. INCREASE TEMPERATURE BT 10.
 					score2--;
 					strike2=0;
 					temperature2+=10;
@@ -777,61 +773,57 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 	
 	
-
+		//THESE ARE TO INDICATE VOLTAGES(EASY-NORMAL-HARD)
     uint16_t adc_value = 0;
-
     adc_value = HAL_ADC_GetValue(hadc);
-
     uint16_t new_prescaler;
     uint32_t new_period;
-
-    // ADC degerine göre yeni prescaler ve periyot degerlerini belirleyin
-    if (adc_value < 0x555) { // ADC degeri 1.1 V'nin altindaysa
+    // Determine new prescaler and period values ??according to ADC value
+    if (adc_value < 0x555) { // If ADC value is below 1.1 V
         new_prescaler = 159;
         new_period = 62499;
 				game_time=1250;
 				temp_game_time=1250;
-    } else if (adc_value < 0x6C2) { // ADC degeri 2.2 V'nin altindaysa
+    } else if (adc_value < 0x6C2) { // If ADC value is below 2.2 V
         new_prescaler = 191;
         new_period = 62499;
 			  game_time=1500;
 			temp_game_time=1500;
-    } else { // Diger durumlar
+    } else { // 
         new_prescaler = 249;
         new_period = 63999;
 				game_time=2000;
 			temp_game_time=2000;
     }
 
-    // Eger yeni ayarlar mevcut ayarlardan farkliysa, timer'i yeniden yapilandirin
+    
     if (new_prescaler != current_prescaler || new_period != current_period) {
         htim2.Init.Prescaler = new_prescaler;
         htim2.Init.Period = new_period;
 
-        // Timer'i durdurun
         HAL_TIM_Base_Stop(&htim2);
 
-        // Timer'i yeniden yapilandirin
+        
         if (HAL_TIM_Base_Init(&htim2) != HAL_OK) {
-            // Hata durumunda buraya ek kod ekleyin
+            
         }
 
-        // Timer'i tekrar baslatin
+        
         if (HAL_TIM_Base_Start(&htim2) != HAL_OK) {
-            // Hata durumunda buraya ek kod ekleyin
+            
         }
 
-        // Güncellenen prescaler ve periyot degerlerini kaydedin
+        
         current_prescaler = new_prescaler;
         current_period = new_period;
     }
 
-    // Önceki ADC degerini güncelleyin
+    // Update previous ADC value
     previous_adc_value = adc_value;
 		
-		if (hadc->Instance == ADC1) {
-        voltage = (HAL_ADC_GetValue(hadc) * 3.3) / 4096.0;  // ADC degerini volta ?evir
-        temperature = voltage * 100.0; // Voltaji sicakliga ?evir
+		if (hadc->Instance == ADC2) {
+        voltage = (HAL_ADC_GetValue(hadc) * 3.3) / 4096.0;  // Convert ADC value to volts
+        temperature = voltage * 100.0; //	Convert voltage to temperature
 				temperature2=temperature;
         snprintf(yazi, sizeof(yazi), "Gun temperature is: %.2f C\n\r", temperature);
         

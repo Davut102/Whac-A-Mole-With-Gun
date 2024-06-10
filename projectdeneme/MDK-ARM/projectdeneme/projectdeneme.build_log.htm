@@ -27,17 +27,17 @@ Project File Date:  06/10/2024
 <h2>Output:</h2>
 *** Using Compiler 'V6.21', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
 Build target 'projectdeneme'
-../Core/Src/main.c(127): warning: initializing 'uint8_t *' (aka 'unsigned char *') with an expression of type 'char[25]' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
-  127 |         uint8_t *Welcome_msg = {"Write name of player1.\r\n"};
+../Core/Src/main.c(112): warning: initializing 'uint8_t *' (aka 'unsigned char *') with an expression of type 'char[25]' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+  112 |         uint8_t *Welcome_msg = {"Write name of player1.\r\n"};
       |                                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../Core/Src/main.c(128): warning: initializing 'uint8_t *' (aka 'unsigned char *') with an expression of type 'char[3]' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
-  128 |         uint8_t *new_line = {"\r\n"};
+../Core/Src/main.c(113): warning: initializing 'uint8_t *' (aka 'unsigned char *') with an expression of type 'char[3]' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+  113 |         uint8_t *new_line = {"\r\n"};
       |                              ^~~~~~
-../Core/Src/main.c(129): warning: initializing 'uint8_t *' (aka 'unsigned char *') with an expression of type 'char[25]' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
-  129 |         uint8_t *Welcome_msg2 = {"Write name of player2.\r\n"};
+../Core/Src/main.c(114): warning: initializing 'uint8_t *' (aka 'unsigned char *') with an expression of type 'char[25]' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+  114 |         uint8_t *Welcome_msg2 = {"Write name of player2.\r\n"};
       |                                  ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-../Core/Src/main.c(130): warning: initializing 'uint8_t *' (aka 'unsigned char *') with an expression of type 'char[32]' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
-  130 |         uint8_t *No_Player={"Player names cannot be null!.\r\n"};
+../Core/Src/main.c(115): warning: initializing 'uint8_t *' (aka 'unsigned char *') with an expression of type 'char[32]' converts between pointers to integer types where one is of the unique plain 'char' type and the other is not [-Wpointer-sign]
+  115 |         uint8_t *No_Player={"Player names cannot be null!.\r\n"};
       |                             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 4 warnings generated.
 compiling main.c...
@@ -68,7 +68,7 @@ Package Vendor: Keil
 
    * Component: ARM::CMSIS:CORE@6.0.0
       Include file:  CMSIS/Core/Include/tz_context.h
-Build Time Elapsed:  00:00:01
+Build Time Elapsed:  00:00:00
 </pre>
 </body>
 </html>
