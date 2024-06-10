@@ -733,6 +733,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     {
         if (bt_rx_data == '1')
         {
+						HAL_UART_Transmit_IT(huart, &bt_rx_data, 1);
             HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
 						HAL_Delay(100);
 						HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
