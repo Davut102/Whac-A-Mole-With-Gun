@@ -108,7 +108,7 @@
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
         <sDlgPa></sDlgPa>
-        <sIfile>..\..\..\..\..\Masaüstü\stm32f107_memory_init.ini</sIfile>
+        <sIfile>..\..\..\..\..\..\Simulation Setup\stm32f107_memory_init.ini</sIfile>
         <tDll></tDll>
         <tDllPa></tDllPa>
         <tDlgDll></tDlgDll>
