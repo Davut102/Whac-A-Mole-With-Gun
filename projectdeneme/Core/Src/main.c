@@ -197,8 +197,6 @@ int main(void)
 	HAL_ADC_Start_IT(&hadc2);
 	lcd_init(_LCD_4BIT, _LCD_FONT_5x10, _LCD_2LINE);
 	
-	HAL_UART_Receive_IT(&huart2, &bt_rx_data, 5);
-	
 	uint8_t data[16];
 	
 	//FOR BUZZER
@@ -215,7 +213,15 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
+		if (HAL_UART_Receive(&huart2, &bt_rx_data, 1, HAL_MAX_DELAY) == HAL_OK)
+        {
+            if (bt_rx_data == "1")
+            {
+                HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
+                HAL_Delay(50);
+                HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
+            }
+        }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -801,22 +807,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
         snprintf(yazi, sizeof(yazi), "Gun temperature is: %.2f C\n\r", temperature);
         
 				HAL_UART_Transmit_DMA(&huart1, (uint8_t*)yazi, strlen(yazi));
-    }
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if (huart->Instance == USART2)
-    {
-        if (bt_rx_data == '1')
-        {
-						HAL_UART_Transmit(huart, &bt_rx_data, 5, 10);
-            HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_SET);
-						HAL_Delay(50);
-						HAL_GPIO_WritePin(GPIOB, GPIO_PIN_11, GPIO_PIN_RESET);
-        }
-
-        HAL_UART_Receive_IT(huart, &bt_rx_data, 5);
     }
 }
 
